@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Color Mood To-Do List with Progress</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #181824;
+      color: white;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 60%;
+      border-radius: 6px 0 0 6px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+      border-radius: 0 6px 6px 0;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    li {
+      background: #333;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      transition: background 0.5s;
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .timestamp {
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+
+    .progress {
+      margin-top: 10px;
+    }
+
+    .progress input[type="range"] {
+      width: 100%;
+    }
+
+    .progress span {
+      display: inline-block;
+      margin-top: 5px;
+    }
+
+    .delete-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .delete-btn:hover {
+      background: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎨 Time Mood To-Do List with Progress Tracker</h1>
+
+  <div class="input-group">
+    <input type="text" id="taskInput" placeholder="What do you need to do?" />
+    <button onclick="addTask()">Add</button>
+  </div>
+
+  <ul id="taskList"></ul>
+
+  <script>
+    const tasks = [];
+
+    function addTask() {
+      const input = document.getElementById("taskInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      const task = {
+        id: Date.now(),
+        text,
+        created: new Date(),
+        progress: 0
+      };
+
+      tasks.push(task);
+      input.value = '';
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const list = document.getElementById("taskList");
+      list.innerHTML = '';
+
+      const now = new Date();
+
+      tasks.forEach(task => {
+        const li = document.createElement("li");
+
+        // Calculate minutes since task was created
+        const diffMins = Math.floor((now - new Date(task.created)) / 60000);
+
+        // Determine background color based on time passed
+        const color = getColorFromAge(diffMins);
+        li.style.background = color;
+
+        const header = document.createElement("div");
+        header.className = "task-header";
+
+        const text = document.createElement("div");
+        text.textContent = task.text;
+
+        const del = document.createElement("button");
+        del.textContent = "🗑";
+        del.className = "delete-btn";
+        del.onclick = () => deleteTask(task.id);
+
+        header.appendChild(text);
+        header.appendChild(del);
+
+        const time = document.createElement("div");
+        time.className = "timestamp";
+        time.textContent = `Added ${diffMins} min ago`;
+
+        const progress = document.createElement("div");
+        progress.className = "progress";
+        progress.innerHTML = `
+          <input type="range" min="0" max="100" value="${task.progress}" 
+            onchange="updateProgress(${task.id}, this.value)">
+          <span>${task.progress}% completed</span>
+        `;
+
+        li.appendChild(header);
+        li.appendChild(time);
+        li.appendChild(progress);
+
+        list.appendChild(li);
+      });
+    }
+
+    function deleteTask(id) {
+      const index = tasks.findIndex(t => t.id === id);
+      if (index !== -1) tasks.splice(index, 1);
+      renderTasks();
+    }
+
+    function updateProgress(id, value) {
+      const task = tasks.find(t => t.id === id);
+      task.progress = value;
+      renderTasks();
+    }
+
+    function getColorFromAge(mins) {
+      if (mins < 5) return '#2962FF';        // Blue (new)
+      if (mins < 15) return '#00C853';       // Green (fresh)
+      if (mins < 30) return '#FFEB3B';       // Yellow (aging)
+      if (mins < 60) return '#FF9800';       // Orange (old)
+      return '#D32F2F';                      // Red (very old)
+    }
+
+    setInterval(renderTasks, 60000); // Update colors every 60 seconds
+  </script>
+</body>
+</html>
